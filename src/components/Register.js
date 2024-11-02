@@ -13,36 +13,43 @@ const Register = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5001/register', { username, password });
-      setMessage(response.data.message); // Muestra el mensaje de éxito
-
-      // Redirige al usuario a /home después de un registro exitoso
+      setMessage(response.data.message);
       if (response.status === 201) {
         navigate('/home');
       }
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Error al registrar usuario'); // Muestra el mensaje de error
+      setMessage(error.response?.data?.message || 'Error al registrar usuario');
     }
   };
 
   return (
-    <div>
-      <h2>Registro</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Nombre de usuario"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Registrarse</button>
-      </form>
-      {message && <p>{message}</p>} {/* Muestra el mensaje de respuesta */}
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 bg-white shadow-md rounded-lg">
+        <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">Registro</h2>
+        <form onSubmit={handleRegister} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Nombre de usuario"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+          />
+          <button
+            type="submit"
+            className="w-full py-2 mt-4 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600"
+          >
+            Registrarse
+          </button>
+        </form>
+        {message && <p className="text-center text-gray-600 mt-4">{message}</p>}
+      </div>
     </div>
   );
 };
