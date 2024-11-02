@@ -68,3 +68,72 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+## Project Dependencies
+
+This project uses the following dependencies:
+
+- **Axios**: Used for making HTTP requests from the frontend to the backend.  
+  Install it with:
+  ```bash
+  npm install axios
+  ```
+
+- **Tailwind CSS**: A utility-first CSS framework for designing and styling UI components quickly and responsively.  
+  Install it with:
+  ```bash
+  npm install -D tailwindcss
+  ```
+
+- **CORS (Cross-Origin Resource Sharing)**: Middleware that enables cross-origin requests in the backend. Useful for allowing the frontend to interact with the backend across different origins.  
+  Install it with:
+  ```bash
+  npm install cors
+  ```
+
+- **Heroicons**: A set of beautiful and customizable icons for React, used in the navigation and UI components.  
+  Install it with:
+  ```bash
+  npm install @heroicons/react
+  ```
+
+- **npm (Node Package Manager)**: The tool used to manage and install project dependencies. It comes with Node.js. Make sure to have it installed to use the above packages.
+
+
+## Database Schema
+
+This project uses a MySQL database with the following tables:
+
+### `users` Table
+
+This table stores information about the users of the application.
+
+| Field     | Type           | Null | Key | Default           | Extra          |
+|-----------|----------------|------|-----|-------------------|----------------|
+| id        | int            | NO   | PRI | NULL              | auto_increment |
+| username  | varchar(255)   | NO   | UNI | NULL              |                |
+| password  | varchar(255)   | NO   |     | NULL              |                |
+
+- **id**: Unique identifier for each user.
+- **username**: The user's unique username.
+- **password**: The user's password, stored in an encrypted format.
+
+### `tasks` Table
+
+This table stores the to-do tasks associated with each user.
+
+| Field       | Type           | Null | Key | Default | Extra          |
+|-------------|----------------|------|-----|---------|----------------|
+| id          | int            | NO   | PRI | NULL    | auto_increment |
+| user_id     | int            | NO   | MUL | NULL    |                |
+| description | varchar(255)   | NO   |     | NULL    |                |
+| is_done     | tinyint(1)     | YES  |     | 0       |                |
+
+- **id**: Unique identifier for each task.
+- **user_id**: Foreign key linking the task to a specific user. It references the `id` field in the `users` table.
+- **description**: The description or content of the task.
+- **is_done**: A boolean flag (0 or 1) indicating whether the task is completed.
+
+> **Note:** The `tasks` table has a foreign key relationship with the `users` table, meaning that each task belongs to a specific user. When a user is deleted, all associated tasks will be deleted automatically (`ON DELETE CASCADE`).
