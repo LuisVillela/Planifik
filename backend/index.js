@@ -94,3 +94,47 @@ app.post('/register', async (req, res) => {
     });
   });
   
+  // Obtener todas las tareas de un usuario
+app.get('/tasks/:userId', (req, res) => {
+  const { userId } = req.params;
+  db.query('SELECT * FROM tasks WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error retrieving tasks', error: err });
+    }
+    res.json(results);
+  });
+});
+
+// Crear una nueva tarea
+app.post('/tasks', (req, res) => {
+  const { userId, description } = req.body;
+  db.query('INSERT INTO tasks (user_id, description) VALUES (?, ?)', [userId, description], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error creating task', error: err });
+    }
+    res.status(201).json({ id: results.insertId, userId, description, is_done: 0 });
+  });
+});
+
+// Actualizar una tarea
+app.put('/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const { description, is_done } = req.body;
+  db.query('UPDATE tasks SET description = ?, is_done = ? WHERE id = ?', [description, is_done, id], (err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error updating task', error: err });
+    }
+    res.json({ message: 'Task updated successfully' });
+  });
+});
+
+// Eliminar una tarea
+app.delete('/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM tasks WHERE id = ?', [id], (err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error deleting task', error: err });
+    }
+    res.json({ message: 'Task deleted successfully' });
+  });
+});
