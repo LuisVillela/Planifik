@@ -23,7 +23,7 @@ const Settings = () => {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Settings Page</h2>
           <button
             onClick={handleLogout}
-            className="px-6 py-2 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+            className="w-full max-w-xs py-2 mt-4 bg-red-500 text-white font-bold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
           >
             Logout
           </button>
