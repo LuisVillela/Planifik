@@ -1,13 +1,22 @@
 // src/components/Settings.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HomeIcon, ClipboardDocumentListIcon, CalendarDaysIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import {
+  HomeIcon,
+  ClipboardDocumentListIcon,
+  CalendarDaysIcon,
+  Cog6ToothIcon,
+} from '@heroicons/react/24/outline';
 
 const Settings = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/');
+    // Eliminar el userId de localStorage
+    localStorage.removeItem('userId');
+
+    // Redirigir al usuario a la página de inicio de sesión
+    navigate('/login');
   };
 
   return (

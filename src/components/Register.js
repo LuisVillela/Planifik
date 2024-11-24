@@ -1,4 +1,5 @@
 // src/components/Register.js
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -15,9 +16,14 @@ const Register = () => {
       const response = await axios.post('http://localhost:5001/register', { username, password });
       setMessage(response.data.message);
       if (response.status === 201) {
+        // Almacenar el userId en localStorage
+        localStorage.setItem('userId', response.data.userId);
+
+        // Navegar a la página de inicio o donde corresponda
         navigate('/home');
       }
     } catch (error) {
+      console.error('Error al registrar el usuario:', error);
       setMessage(error.response?.data?.message || 'Error registering user');
     }
   };
@@ -50,11 +56,11 @@ const Register = () => {
         </form>
         {message && <p className="text-center text-gray-600 mt-4">{message}</p>}
 
-        {/* Redirection text */}
+        {/* Texto de redirección */}
         <p className="text-center text-gray-600 mt-6">
-          Already have an account?{' '}
+          ¿Ya tienes una cuenta?{' '}
           <Link to="/login" className="text-blue-500 hover:underline">
-            Login
+            Inicia sesión
           </Link>
         </p>
       </div>

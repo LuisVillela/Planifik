@@ -1,44 +1,82 @@
+// src/components/Tasks.js
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  HomeIcon,
+  ClipboardDocumentListIcon,
+  CalendarDaysIcon,
+  Cog6ToothIcon,
+  PlusIcon,
+  TrashIcon,
+  CheckIcon,
+} from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { HomeIcon, ClipboardDocumentListIcon, CalendarDaysIcon, Cog6ToothIcon, TrashIcon, CheckIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const Tasks = () => {
   const navigate = useNavigate();
-  const userId = 1; // ID de usuario para pruebas; ajústalo según corresponda
+  const userId = localStorage.getItem('userId');
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState('');
 
   // Obtener tareas
   const fetchTasks = async () => {
     try {
       const response = await axios.get(`http://localhost:5001/tasks/${userId}`);
-      setTasks(response.data);
+      // Ordenar las tareas por fecha
+      const sortedTasks = response.data.sort((a, b) => {
+        if (!a.due_date) return 1; // Las tareas sin fecha van al final
+        if (!b.due_date) return -1;
+        return new Date(a.due_date) - new Date(b.due_date);
+      });
+      setTasks(sortedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
   };
 
-  // Crear tarea
+  // Formatear fecha a 'YYYY-MM-DD'
+  const formatDate = (date) => {
+    if (!date) return null;
+    // Si 'date' es un objeto Date
+    if (Object.prototype.toString.call(date) === '[object Date]') {
+      const year = date.getFullYear();
+      const month = ('0' + (date.getMonth() + 1)).slice(-2);
+      const day = ('0' + date.getDate()).slice(-2);
+      return `${year}-${month}-${day}`;
+    }
+    // Si 'date' es una cadena, tomamos los primeros 10 caracteres
+    return date.substring(0, 10);
+  };
+
+  // Agregar nueva tarea
   const addTask = async () => {
-    if (newTask.trim() === '') return;
+    if (!newTask.trim() || !newTaskDueDate) return;
     try {
-      const response = await axios.post('http://localhost:5001/tasks', {
+      await axios.post('http://localhost:5001/tasks', {
         userId,
         description: newTask,
+        due_date: newTaskDueDate,
       });
-      setTasks([...tasks, response.data]);
       setNewTask('');
+      setNewTaskDueDate('');
+      fetchTasks();
     } catch (error) {
       console.error('Error adding task:', error);
     }
   };
 
   // Actualizar tarea
-  const updateTask = async (id, description, isDone) => {
+  const updateTask = async (id, description, isDone, dueDate) => {
     try {
-      await axios.put(`http://localhost:5001/tasks/${id}`, { description, is_done: isDone });
-      fetchTasks(); // Actualizar la lista de tareas después de la edición
+      const formattedDueDate = formatDate(dueDate);
+      await axios.put(`http://localhost:5001/tasks/${id}`, {
+        description,
+        is_done: isDone ? 1 : 0,
+        due_date: formattedDueDate,
+      });
+      fetchTasks();
     } catch (error) {
       console.error('Error updating task:', error);
     }
@@ -48,74 +86,93 @@ const Tasks = () => {
   const deleteTask = async (id) => {
     try {
       await axios.delete(`http://localhost:5001/tasks/${id}`);
-      setTasks(tasks.filter((task) => task.id !== id));
+      fetchTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (!userId) {
+      navigate('/login');
+    } else {
+      fetchTasks();
+    }
+  }, [userId]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-200">
-      {/* Barra superior fija con título */}
+      {/* Barra superior */}
       <header className="w-full bg-white shadow-md fixed top-0 left-0 z-10 py-6 px-4">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mt-4">Tasks</h1>
+        <h1 className="text-2xl font-bold text-center text-gray-800 mt-4">To-Do List</h1>
       </header>
 
-      {/* Contenido principal */}
-      <div className="flex flex-col flex-grow items-center justify-start p-4 text-center mt-28">
-        <div className="w-full max-w-md">
-          {/* Entrada para nueva tarea */}
-          <div className="flex items-center space-x-2 mb-6">
+      {/* Contenido principal con scroll */}
+      <div className="flex flex-col flex-grow items-center justify-start p-4 text-center mt-24 overflow-auto">
+        {/* Lista de tareas */}
+        <ul className="w-full max-w-md space-y-4">
+          {tasks.map((task) => (
+            <li
+              key={task.id}
+              className={`flex items-center justify-between p-3 bg-white shadow rounded-md ${
+                task.is_done ? 'opacity-50 line-through' : ''
+              }`}
+            >
+              <div className="flex flex-col items-start">
+                <span className="text-gray-800">{task.description}</span>
+                {task.due_date && (
+                  <span className="text-gray-600 text-sm">
+                    Fecha límite: {new Date(task.due_date).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() =>
+                    updateTask(task.id, task.description, !task.is_done, task.due_date)
+                  }
+                  className="text-green-500 hover:text-green-700"
+                >
+                  <CheckIcon className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {/* Espacio para permitir que el botón de agregar tarea sea visible */}
+        <div className="mt-6 w-full max-w-md flex-shrink-0">
+          {/* Formulario para agregar nueva tarea */}
+          <div className="flex items-center space-x-2">
             <input
               type="text"
-              placeholder="New task"
+              placeholder="Nueva tarea"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
             />
-            <button onClick={addTask} className="bg-blue-500 text-white p-2 rounded-full">
+            <input
+              type="date"
+              value={newTaskDueDate}
+              onChange={(e) => setNewTaskDueDate(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+            />
+            <button
+              onClick={addTask}
+              disabled={!newTask.trim() || !newTaskDueDate}
+              className={`bg-blue-500 text-white p-2 rounded-full ${
+                !newTask.trim() || !newTaskDueDate ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
               <PlusIcon className="h-6 w-6" />
             </button>
           </div>
-          {/* Lista de tareas */}
-          <ul className="space-y-4">
-            {tasks.map((task) => (
-              <li
-                key={task.id}
-                className="flex items-center justify-between p-3 bg-white shadow rounded-md"
-              >
-                <div className="flex items-center space-x-2 flex-grow">
-                  {/* Círculo para marcar como completada */}
-                  <button
-                    onClick={() => updateTask(task.id, task.description, !task.is_done)}
-                    className={`w-6 h-6 flex items-center justify-center rounded-full border-2 ${
-                      task.is_done ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-400 text-transparent'
-                    }`}
-                  >
-                    <CheckIcon className="h-4 w-4" />
-                  </button>
-                  {/* Input para editar la tarea */}
-                  <input
-                    type="text"
-                    value={task.description}
-                    onChange={(e) => updateTask(task.id, e.target.value, task.is_done)}
-                    className="w-full px-2 py-1 focus:outline-none bg-transparent"
-                  />
-                </div>
-                {/* Icono para eliminar tarea */}
-                <button
-                  onClick={() => deleteTask(task.id)}
-                  className="text-red-500 font-bold ml-2"
-                >
-                  <TrashIcon className="h-6 w-6" />
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
 

@@ -13,12 +13,19 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5001/login', { username, password });
-      setMessage(response.data.message);
+      
       if (response.status === 200) {
+        // Almacenar el userId en localStorage
+        localStorage.setItem('userId', response.data.userId);
+
+        // Navegar a la página de inicio o donde corresponda
         navigate('/home');
+      } else {
+        setMessage(response.data.message || 'Credenciales incorrectas');
       }
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Incorrect credentials');
+      console.error('Error al iniciar sesión:', error);
+      setMessage(error.response?.data?.message || 'Credenciales incorrectas');
     }
   };
 
@@ -50,11 +57,11 @@ const Login = () => {
         </form>
         {message && <p className="text-center text-gray-600 mt-4">{message}</p>}
 
-        {/* Redirection text */}
+        {/* Texto de redirección */}
         <p className="text-center text-gray-600 mt-6">
-          Don’t have an account?{' '}
+          ¿No tienes una cuenta?{' '}
           <Link to="/register" className="text-blue-500 hover:underline">
-            Register
+            Regístrate
           </Link>
         </p>
       </div>
